@@ -1,8 +1,8 @@
 // @flow
-export default class Action {
-  state: $ReadOnly<any>;
+export default class Action<S> {
+  state: $ReadOnly<S>;
 
-  constructor(state: any) {
+  constructor(state: S) {
     this.state = state;
   }
 }
