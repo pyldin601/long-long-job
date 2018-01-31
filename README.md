@@ -1,31 +1,4 @@
-[![Dev dependencies][dependencies-badge]][dependencies]
-[![Node.js version][nodejs-badge]][nodejs]
-[![Yarn][yarn-badge]][yarn]
-[![Build Status][travis-badge]][travis-ci]
-
-[![MIT License][license-badge]][LICENSE]
-[![PRs Welcome][prs-badge]][prs]
-[![Donate][donate-badge]][donate]
-
-[![Watch on GitHub][github-watch-badge]][github-watch]
-[![Star on GitHub][github-star-badge]][github-star]
-[![Tweet][twitter-badge]][twitter]
-
 # node-flowtype-boilerplate
-
-Minimalistic boilerplate to jump-start a [Node.js][nodejs] project in ES6 with [Flow][flowtype] type checking.
-
-Provides a basic template, batteries included:
-
-+ ES6 + babel,
-  + Removes Flow type annotations,
-  + Transforms imports to lazy CommonJS requires,
-  + Transforms async/await to generators,
-+ [ESLint][eslint] with the [airbnb-base][airbnb-base] and [flowtype][eslint-flowtype] rules,
-+ [Jest][jest] unit testing and coverage,
-+ [Type definitions][flow-typed] for Jest,
-+ [NPM scripts for common operations](#available-scripts),
-+ [.editorconfig][editorconfig] for consistent file format,
 
 ## Quick start
 
