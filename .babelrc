@@ -2,7 +2,6 @@
   "plugins": [
     ["transform-es2015-modules-commonjs"],
     ["transform-flow-strip-types"],
-    ["transform-async-to-generator"],
     ["transform-runtime", {
       "polyfill": false,
       "regenerator": true

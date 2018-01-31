@@ -21,61 +21,71 @@ function groupTaskUnits<S>(taskUnits: TaskUnit<S>[]): TaskUnitsResult<S> {
   for (const taskUnit of taskUnits) {
     if (taskUnit instanceof Label) {
       labels[taskUnit.label] = tasks.length;
-      continue;
+    } else {
+      tasks.push(taskUnit);
     }
-    tasks.push(taskUnit);
   }
 
   return { labels, tasks };
 }
 
-export default (stateService: StateService) => async <S>(
+type Runner<S> = (
   id: string,
   getInitialState: () => Promise<S>,
   taskUnits: TaskUnit<S>[],
-): Promise<S> => {
-  const getTaskState = async (): Promise<TaskState<S>> => {
-    const taskState = await stateService.getState(id);
-    if (taskState === null) {
-      const initialState = await getInitialState();
-      return { cursor: 0, state: initialState };
-    }
-    return taskState;
-  };
+) => Promise<S>;
 
-  const runTask = async ({ cursor, state }: TaskState<S>, { labels, tasks }: TaskUnitsResult<S>) => {
-    await stateService.setState(id, { cursor, state });
-
-    const task = tasks[cursor];
-
-    if (task === undefined) {
-      return state;
-    }
-
-    const result = await task(state);
-
-    let nextState: TaskState<S>;
-    if (result instanceof Next) {
-      nextState = { cursor: cursor + 1, state: result.state };
-    } else if (result instanceof Repeat) {
-      nextState = { cursor, state: result.state };
-    } else if (result instanceof Goto) {
-      const nextCursor = labels[result.label];
-      if (nextCursor === undefined) {
-        throw new Error(`Label ${result.label} does not exist`);
+export default function(stateService: StateService): Runner {
+  return async function run<S>(
+    id: string,
+    getInitialState: () => Promise<S>,
+    taskUnits: TaskUnit<S>[],
+  ): Promise<S> {
+    const getTaskState = async (): Promise<TaskState<S>> => {
+      const taskState = await stateService.getState(id);
+      if (taskState === null) {
+        const initialState = await getInitialState();
+        return { cursor: 0, state: initialState };
       }
-      nextState = { cursor: nextCursor, state: result.state };
-    } else {
-      throw new Error(`Tasks should return an action`);
-    }
+      return taskState;
+    };
 
-    await stateService.setState(id, nextState);
+    const runTask = async (
+      { cursor, state }: TaskState<S>,
+      { labels, tasks }: TaskUnitsResult<S>,
+    ) => {
 
-    return runTask(nextState, { labels, tasks });
+      const task = tasks[cursor];
+
+      if (task === undefined) {
+        return state;
+      }
+
+      const result = await task(state);
+
+      let nextState: TaskState<S>;
+      if (result instanceof Next) {
+        nextState = { cursor: cursor + 1, state: result.state };
+      } else if (result instanceof Repeat) {
+        nextState = { cursor, state: result.state };
+      } else if (result instanceof Goto) {
+        const nextCursor = labels[result.label];
+        if (nextCursor === undefined) {
+          throw new Error(`Label ${result.label} does not exist`);
+        }
+        nextState = { cursor: nextCursor, state: result.state };
+      } else {
+        throw new Error(`Task should return an action`);
+      }
+
+      await stateService.setState(id, nextState);
+
+      return runTask(nextState, { labels, tasks });
+    };
+
+    const groupedTaskUnits = groupTaskUnits(taskUnits);
+    const taskState = await getTaskState();
+
+    return runTask(taskState, groupedTaskUnits);
   };
-
-  const groupedTaskUnits = groupTaskUnits(taskUnits);
-  const taskState = await getTaskState();
-
-  return runTask(taskState, groupedTaskUnits);
-};
+}
