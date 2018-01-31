@@ -33,7 +33,7 @@ export default (stateService: StateService) => async <S>(
   id: string,
   getInitialState: () => Promise<S>,
   taskUnits: TaskUnit<S>[],
-): Promise<void> => {
+): Promise<S> => {
   const getTaskState = async (): Promise<TaskState<S>> => {
     const taskState = await stateService.getState(id);
     if (taskState === null) {
@@ -43,37 +43,39 @@ export default (stateService: StateService) => async <S>(
     return taskState;
   };
 
-  const runAll = (taskState: TaskState<S>, { labels, tasks }: TaskUnitsResult<S>) =>
-    new Promise((resolve, reject) => {
-      const runTask = async ({ cursor, state }: TaskState<S>) => {
-        const runTask = tasks[cursor];
+  const runTask = async ({ cursor, state }: TaskState<S>, { labels, tasks }: TaskUnitsResult<S>) => {
+    await stateService.setState(id, { cursor, state });
 
-        if (runTask === undefined) {
-          return resolve(state);
-        }
+    const task = tasks[cursor];
 
-        const result = await runTask(state);
+    if (task === undefined) {
+      return state;
+    }
 
-        if (result instanceof Next) {
-          setImmediate(runTask, { cursor: cursor + 1, state: result.state });
-        } else if (result instanceof Repeat) {
-          setImmediate(runTask, { cursor, state: result.state });
-        } else if (result instanceof Goto) {
-          const nextCursor = labels[result.label];
-          if (nextCursor === undefined) {
-            throw new Error(`Label ${result.label} does not exist`);
-          }
-          setImmediate(runTask, { cursor: nextCursor, state: result.state });
-        }
+    const result = await task(state);
 
-        throw new Error(`Tasks should return an action`);
-      };
+    let nextState: TaskState<S>;
+    if (result instanceof Next) {
+      nextState = { cursor: cursor + 1, state: result.state };
+    } else if (result instanceof Repeat) {
+      nextState = { cursor, state: result.state };
+    } else if (result instanceof Goto) {
+      const nextCursor = labels[result.label];
+      if (nextCursor === undefined) {
+        throw new Error(`Label ${result.label} does not exist`);
+      }
+      nextState = { cursor: nextCursor, state: result.state };
+    } else {
+      throw new Error(`Tasks should return an action`);
+    }
 
-      runTask(taskState);
-    });
+    await stateService.setState(id, nextState);
+
+    return runTask(nextState, { labels, tasks });
+  };
 
   const groupedTaskUnits = groupTaskUnits(taskUnits);
   const taskState = await getTaskState();
 
-  await runAll(taskState, groupedTaskUnits);
+  return runTask(taskState, groupedTaskUnits);
 };
