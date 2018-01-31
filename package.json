@@ -2,6 +2,7 @@
   "name": "long-long-jobs",
   "version": "0.0.0",
   "description": "Library for execution of long jobs with resume support.",
+  "main": "dist/index.js",
   "engineStrict": true,
   "engines": {
     "node": ">=8.9"
