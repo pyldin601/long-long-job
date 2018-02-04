@@ -28,7 +28,7 @@ const mapBasedStorage = () => {
       stateStore.set(id, state);
     },
     async getState(id) {
-      return stateStore.get(id) || null;
+      return stateStore.get(id);
     },
     async clean(id) {
       stateStore.delete(id);
