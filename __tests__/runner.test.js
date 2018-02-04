@@ -130,7 +130,7 @@ describe('Runner tests', () => {
     expect(onDone.mock.calls[0]).toEqual([30]);
   });
 
-  test('Test terminate', async () => {
+  test('Test termination', async () => {
     const job = new LongLongJob('inc-dec', [
       async ({ initial }) => goto('inc', { current: initial, threshold: initial + 10 }),
 
