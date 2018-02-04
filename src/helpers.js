@@ -14,6 +14,6 @@ export function goto<S>(id: string, state: S): Goto<S> {
   return new Goto(id, state);
 }
 
-export function label<S>(id: string): Label<S> {
+export function label(id: string): Label {
   return new Label(id);
 }

@@ -1,67 +1,67 @@
 // @flow
-import createRunner from '../src/runner';
+import factory from '../src/LongLongJob';
 import { next, repeat, goto, label } from '../src';
 
-describe('Runner tests', () => {
-  const stateStore = new Map();
-  const run = createRunner({
-    async setState(id, state): Promise<void> {
-      stateStore.set(id, state);
-    },
-    async getState(id): Promise<any> {
-      return stateStore.get(id) || null;
-    },
-    async clean(id): Promise<void> {
-      stateStore.delete(id);
-    },
-  });
+const stateStore = new Map();
 
+const LongLongJob = factory({
+  async hasState(id): Promise<boolean> {
+    return stateStore.has(id);
+  },
+  async setState(id, state): Promise<void> {
+    stateStore.set(id, state);
+  },
+  async getState(id): Promise<any> {
+    return stateStore.get(id) || null;
+  },
+  async clean(id): Promise<void> {
+    stateStore.delete(id);
+  },
+});
+
+describe('Runner tests', () => {
   test('Empty tasks chain', async () => {
+    const job = new LongLongJob('test-job-1', []);
     const initialState = { foo: 'bar' };
-    const result = await run('test-job', async () => initialState, []);
+    const result = await job.start(initialState);
     expect(result).toEqual(initialState);
   });
 
   test('Simple tasks chain (full)', async () => {
-    const initialState = 5;
-    const result = await run('test-job', async () => initialState, [
+    const job = new LongLongJob('test-job-2', [
       async (state) => next(state + 10),
       async (state) => next(state * 2),
     ]);
-    expect(result).toEqual(30);
+    const initialState = 5;
+    expect(await job.start(initialState)).toEqual(30);
   });
 
   test('Simple tasks chain (resume)', async () => {
     stateStore.set('test-job', { cursor: 1, state: 15 });
-
-    const initialState = 5;
-    const result = await run('test-job', async () => initialState, [
+    const job = new LongLongJob('test-job-3', [
       async (state) => next(state + 10),
       async (state) => next(state * 2),
     ]);
-    expect(result).toEqual(30);
+    const initialState = 5;
+    expect(await job.start(initialState)).toEqual(30);
   });
 
   test('Tasks chain with repeat', async () => {
-    stateStore.set('test-job', { cursor: 1, state: 15 });
-
-    const initialState = 5;
-    const result = await run('test-job', async () => initialState, [
+    const job = new LongLongJob('test-job-4', [
       async (state) => next(state + 10),
       async (state) => (state < 1000 ? repeat(state * 2) : next(state)),
     ]);
-    expect(result).toEqual(1920);
+    const initialState = 5;
+    expect(await job.start(initialState)).toEqual(1920);
   });
 
   test('Tasks chain with label', async () => {
-    stateStore.set('test-job', { cursor: 1, state: 15 });
-
-    const initialState = 5;
-    const result = await run('test-job', async () => initialState, [
+    const job = new LongLongJob('test-job-5', [
       label('begin'),
       async (state) => next(state + 10),
       async (state) => (state < 1000 ? goto('begin', state * 2) : next(state)),
     ]);
-    expect(result).toEqual(1590);
+    const initialState = 5;
+    expect(await job.start(initialState)).toEqual(1590);
   });
 });
