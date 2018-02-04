@@ -67,7 +67,7 @@ describe('Runner tests', () => {
 
   test('Test event emitter (start)', async () => {
     const onStart = jest.fn();
-    const onContinue = jest.fn();
+    const onResume = jest.fn();
     const onTask = jest.fn();
     const onDone = jest.fn();
 
@@ -78,7 +78,7 @@ describe('Runner tests', () => {
     const initialState = 5;
 
     job.on('start', onStart);
-    job.on('continue', onContinue);
+    job.on('resume', onResume);
     job.on('task', onTask);
     job.on('done', onDone);
 
@@ -87,7 +87,7 @@ describe('Runner tests', () => {
     expect(onStart.mock.calls.length).toBe(1);
     expect(onStart.mock.calls[0]).toEqual([]);
 
-    expect(onContinue.mock.calls.length).toBe(0);
+    expect(onResume.mock.calls.length).toBe(0);
 
     expect(onTask.mock.calls.length).toBe(2);
     expect(onTask.mock.calls[0]).toEqual([0, 5]);
@@ -101,7 +101,7 @@ describe('Runner tests', () => {
     stateStore.set('test-job-7', { cursor: 1, state: 15 });
 
     const onStart = jest.fn();
-    const onContinue = jest.fn();
+    const onResume = jest.fn();
     const onTask = jest.fn();
     const onDone = jest.fn();
 
@@ -112,7 +112,7 @@ describe('Runner tests', () => {
     const initialState = 5;
 
     job.on('start', onStart);
-    job.on('continue', onContinue);
+    job.on('resume', onResume);
     job.on('task', onTask);
     job.on('done', onDone);
 
@@ -120,8 +120,8 @@ describe('Runner tests', () => {
 
     expect(onStart.mock.calls.length).toBe(0);
 
-    expect(onContinue.mock.calls.length).toBe(1);
-    expect(onContinue.mock.calls[0]).toEqual([]);
+    expect(onResume.mock.calls.length).toBe(1);
+    expect(onResume.mock.calls[0]).toEqual([]);
 
     expect(onTask.mock.calls.length).toBe(1);
     expect(onTask.mock.calls[0]).toEqual([1, 15]);

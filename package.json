@@ -1,6 +1,6 @@
 {
   "name": "long-long-job",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Library for execution of long jobs with resume support.",
   "main": "dist/index.js",
   "engineStrict": true,
@@ -28,6 +28,7 @@
     "jest": "^21.2.1"
   },
   "scripts": {
+    "start": "node example/main.js",
     "clean": "rm -rf coverage dist tmp",
     "lint": "eslint .",
     "postlint": "npm run typecheck",
@@ -38,8 +39,8 @@
     "test-only": "jest",
     "test:watch": "jest --watch",
     "prebuild": "npm run clean",
-    "build": "babel src/**/*.js -d dist",
-    "build:watch": "babel --watch src/**/*.js -d dist",
+    "build": "babel src -d dist",
+    "build:watch": "babel --watch src/**.js -d dist",
     "postinstall": "flow-typed install --skip",
     "prepublish": "npm run build"
   },

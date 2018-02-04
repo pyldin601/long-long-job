@@ -26,7 +26,7 @@ export default (stateService: StateService) => class LongLongJob<In, Out> extend
     const { labels, tasks } = groupTaskUnits(this.tasks);
 
     if (await this.hasStoredState()) {
-      this.emit('continue');
+      this.emit('resume');
     } else {
       this.emit('start');
     }
