@@ -23,6 +23,7 @@
     "eslint-plugin-flowtype": "~2.39.1",
     "eslint-plugin-import": "~2.8.0",
     "flow-bin": "^0.58.0",
+    "flow-typed": "^2.3.0",
     "jest": "^21.2.1"
   },
   "scripts": {
@@ -35,7 +36,8 @@
     "test-only": "jest --coverage",
     "test:watch": "jest --watch",
     "build": "babel src/**/*.js -d dist",
-    "build:watch": "babel --watch src/**/*.js -d dist"
+    "build:watch": "babel --watch src/**/*.js -d dist",
+    "postinstall": "flow-typed install --skip"
   },
   "author": "Roman Lakhtadyr <roman.lakhtadyr@gmail.com>",
   "license": "MIT",
