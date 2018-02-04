@@ -1,11 +1,6 @@
 {
+  "presets": ["react-app"],
   "plugins": [
-    ["transform-es2015-modules-commonjs"],
-    ["transform-flow-strip-types"],
-    ["transform-runtime", {
-      "polyfill": false,
-      "regenerator": true
-    }]
-  ],
-  "presets": ["es2015"]
+    "transform-es2015-modules-commonjs"
+  ]
 }
