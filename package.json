@@ -33,13 +33,15 @@
     "postlint": "npm run typecheck",
     "typecheck": "flow check",
     "pretest": "npm run lint",
-    "test": "npm run test-only",
+    "test": "jest --coverage",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "test-only": "jest",
     "test:watch": "jest --watch",
+    "prebuild": "npm run clean",
     "build": "babel src/**/*.js -d dist",
     "build:watch": "babel --watch src/**/*.js -d dist",
-    "postinstall": "flow-typed install --skip"
+    "postinstall": "flow-typed install --skip",
+    "prepublish": "npm run build"
   },
   "author": "Roman Lakhtadyr <roman.lakhtadyr@gmail.com>",
   "license": "MIT",
