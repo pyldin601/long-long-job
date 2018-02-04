@@ -21,6 +21,8 @@ export default (stateService: StateService) => class LongLongJob<S> extends Even
       throw new Error('Already started');
     }
 
+    this.isRunning = true;
+
     const { labels, tasks } = groupTaskUnits(this.tasks);
 
     if (await this.hasStoredState()) {
@@ -57,6 +59,8 @@ export default (stateService: StateService) => class LongLongJob<S> extends Even
     this.emit('done');
 
     await this.clearStoredState();
+
+    this.isRunning = false;
 
     return state;
   }
