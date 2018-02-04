@@ -7,10 +7,5 @@
       "regenerator": true
     }]
   ],
-  "env": {
-    "production": {
-      "comments": false,
-      "minified": true
-    }
-  }
+  "presets": ["es2015"]
 }
