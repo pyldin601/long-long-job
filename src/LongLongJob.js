@@ -75,7 +75,7 @@ export default (stateService: StateService) => class LongLongJob<In, Out> extend
 
   async getTaskState(initialState: In): Promise<TaskState<any>> {
     const taskState = await stateService.getState(this.id);
-    if (taskState === null) {
+    if (taskState === null || taskState === undefined) {
       return { cursor: 0, state: initialState };
     }
     return taskState;
