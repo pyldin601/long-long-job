@@ -1,6 +1,6 @@
 {
   "name": "long-long-job",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Library for execution of long jobs with resume support.",
   "main": "dist/index.js",
   "engineStrict": true,
@@ -41,7 +41,7 @@
     "prebuild": "npm run clean",
     "build": "babel src -d dist",
     "build:watch": "babel --watch src/**.js -d dist",
-    "postinstall": "flow-typed install --skip",
+    "typed:install": "flow-typed install --skip",
     "prepublish": "npm run build"
   },
   "author": "Roman Lakhtadyr <roman.lakhtadyr@gmail.com>",
