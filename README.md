@@ -13,7 +13,7 @@ Each task receives state of previous task (or initial state if it is first in ch
 First of all we need to define where job's state will be stored during transitions. Then we must initialize module with it.
 For example, we will store state in `Map` object. This is simplest storage method and it won't preserve state during restarts.
 
-### `LongLongJob.js`
+### LongLongJob.js
 
 ```javascript
 const { longLongJob } = require('long-long-job');
