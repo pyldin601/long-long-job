@@ -56,7 +56,7 @@ export default (stateService: StateService) => class LongLongJob<S> extends Even
       await stateService.setState(this.id, { cursor, state });
     }
 
-    this.emit('done');
+    this.emit('done', state);
 
     await this.clearStoredState();
 
