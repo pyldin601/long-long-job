@@ -1,24 +1,8 @@
-# node-flowtype-boilerplate
+# long-long-job
 
-## Quick start
+## What?
 
-This project requires [Node.js][nodejs] v8.9 (LTS Carbon) or later and [Yarn][yarn]. Make sure you have those installed. Then just type following commands:
+This module ables you to create a chain of tasks (computations or actions) with ability to resume run state on restart.
+Each task receives state of previous task (or initial state if it is first in chain) and must return action what to do next composed with new state.
 
-```
-git clone https://github.com/jsynowiec/node-flowtype-boilerplate
-cd node-flowtype-boilerplate
-yarn
-```
-
-## Available scripts
-
-Run using `yarn run <script>` comand.
-
-+ `clean` - remove coverage data, Jest cache and transpiled files,
-+ `lint` - lint source files and tests,
-+ `typecheck` - check type annotations,
-+ `test` - lint, typecheck and run tests with coverage,
-+ `test-only` - run tests with coverage,
-+ `test:watch` - interactive watch mode to automatically re-run tests, 
-+ `build` - compile source files,
-+ `build:watch` - interactive watch mode, compile sources on change.
+## Example
