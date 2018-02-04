@@ -35,7 +35,7 @@
     "pretest": "npm run lint",
     "test": "npm run test-only",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "test-only": "jest --coverage",
+    "test-only": "jest",
     "test:watch": "jest --watch",
     "build": "babel src/**/*.js -d dist",
     "build:watch": "babel --watch src/**/*.js -d dist",

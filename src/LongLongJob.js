@@ -4,19 +4,19 @@ import type { StateService, TaskUnit, TaskState } from './types';
 import { Next, Goto, Repeat } from './actions';
 import { groupTaskUnits } from './util';
 
-export default (stateService: StateService) => class LongLongJob<S> extends EventEmitter {
+export default (stateService: StateService) => class LongLongJob<In, Out> extends EventEmitter {
   id: string;
-  tasks: TaskUnit<S>[];
+  tasks: TaskUnit<any>[];
   isRunning: boolean;
 
-  constructor(id: string, tasks: TaskUnit<S>[]) {
+  constructor(id: string, tasks: TaskUnit<any>[]) {
     super();
     this.id = id;
     this.tasks = tasks;
     this.isRunning = false;
   }
 
-  async start(initialState: S): Promise<S> {
+  async start(initialState: In): Promise<Out> {
     if (this.isRunning) {
       throw new Error('Already started');
     }
@@ -34,6 +34,10 @@ export default (stateService: StateService) => class LongLongJob<S> extends Even
     let { cursor, state } = await this.getTaskState(initialState);
 
     while(tasks[cursor] !== undefined) {
+      if (!this.isRunning) {
+        throw new Error('Job terminated');
+      }
+
       this.emit('task', cursor, state);
 
       const action = await tasks[cursor](state);
@@ -65,7 +69,11 @@ export default (stateService: StateService) => class LongLongJob<S> extends Even
     return state;
   }
 
-  async getTaskState(initialState: S): Promise<TaskState<S>> {
+  terminate() {
+    this.isRunning = false;
+  }
+
+  async getTaskState(initialState: In): Promise<TaskState<any>> {
     const taskState = await stateService.getState(this.id);
     if (taskState === null) {
       return { cursor: 0, state: initialState };

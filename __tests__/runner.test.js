@@ -29,8 +29,8 @@ describe('Runner tests', () => {
 
   test('Simple tasks chain (full)', async () => {
     const job = new LongLongJob('test-job-2', [
-      async (state) => next(state + 10),
-      async (state) => next(state * 2),
+      async state => next(state + 10),
+      async state => next(state * 2),
     ]);
     const initialState = 5;
     expect(await job.start(initialState)).toEqual(30);
@@ -39,8 +39,8 @@ describe('Runner tests', () => {
   test('Simple tasks chain (resume)', async () => {
     stateStore.set('test-job-3', { cursor: 1, state: 15 });
     const job = new LongLongJob('test-job-3', [
-      async (state) => next(state + 10),
-      async (state) => next(state * 2),
+      async state => next(state + 10),
+      async state => next(state * 2),
     ]);
     const initialState = 5;
     expect(await job.start(initialState)).toEqual(30);
@@ -48,8 +48,8 @@ describe('Runner tests', () => {
 
   test('Tasks chain with repeat', async () => {
     const job = new LongLongJob('test-job-4', [
-      async (state) => next(state + 10),
-      async (state) => (state < 1000 ? repeat(state * 2) : next(state)),
+      async state => next(state + 10),
+      async state => (state < 1000 ? repeat(state * 2) : next(state)),
     ]);
     const initialState = 5;
     expect(await job.start(initialState)).toEqual(1920);
@@ -58,8 +58,8 @@ describe('Runner tests', () => {
   test('Tasks chain with label', async () => {
     const job = new LongLongJob('test-job-5', [
       label('begin'),
-      async (state) => next(state + 10),
-      async (state) => (state < 1000 ? goto('begin', state * 2) : next(state)),
+      async state => next(state + 10),
+      async state => (state < 1000 ? goto('begin', state * 2) : next(state)),
     ]);
     const initialState = 5;
     expect(await job.start(initialState)).toEqual(1590);
@@ -72,8 +72,8 @@ describe('Runner tests', () => {
     const onDone = jest.fn();
 
     const job = new LongLongJob('test-job-6', [
-      async (state) => next(state + 10),
-      async (state) => next(state * 2),
+      async state => next(state + 10),
+      async state => next(state * 2),
     ]);
     const initialState = 5;
 
@@ -106,8 +106,8 @@ describe('Runner tests', () => {
     const onDone = jest.fn();
 
     const job = new LongLongJob('test-job-7', [
-      async (state) => next(state + 10),
-      async (state) => next(state * 2),
+      async state => next(state + 10),
+      async state => next(state * 2),
     ]);
     const initialState = 5;
 
@@ -128,5 +128,31 @@ describe('Runner tests', () => {
 
     expect(onDone.mock.calls.length).toBe(1);
     expect(onDone.mock.calls[0]).toEqual([30]);
+  });
+
+  test('Test terminate', async () => {
+    const job = new LongLongJob('inc-dec', [
+      async ({ initial }) => goto('inc', { current: initial, threshold: initial + 10 }),
+
+      label('inc'),
+      async ({ current, threshold }) =>
+        current < threshold
+          ? repeat({ current: current + 1, threshold })
+          : goto('dec', { current, threshold: current - 8 }),
+
+      label('dec'),
+      async ({ current, threshold }) =>
+        current > threshold
+          ? repeat({ current: current - 1, threshold })
+          : goto('inc', { current, threshold: current + 12 }),
+    ]);
+
+    job.on('task', (cursor, state) => {
+      if (state.current > 50) {
+        job.terminate();
+      }
+    });
+
+    await expect(job.start({ initial: 0 })).rejects.toEqual(new Error('Job terminated'));
   });
 });
