@@ -46,9 +46,12 @@ const LongLongJob = require('./LongLongJob');
 const { repeat, next } = require('long-long-job');
 
 const incrementJob = new LongLongJob('increment-job', [
-  async ({ value, threshold }) => value < threshold
-    ? repeat({ value: value + 1, threshold })
-    : next({ value, threshold }),
+  async ({ value, threshold }) => {
+    incrementJob.emit('tick', value);
+    return value < threshold 
+      ? repeat({ value: value + 1, threshold })
+      : next({ value, threshold });
+  },
 ]);
 
 module.exports = incrementJob;
@@ -61,7 +64,7 @@ const incrementJob = require('./incrementJob');
 
 incrementJob.on('start', () => console.log('Job started'));
 incrementJob.on('resume', () => console.log('Job resumed'));
-incrementJob.on('task', (cursor, { value }) => console.log('Current value is %d', value));
+incrementJob.on('tick', value => console.log('Current value is %d', value));
 incrementJob.on('done', () => console.log('Job finished'));
 
 incrementJob

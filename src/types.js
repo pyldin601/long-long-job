@@ -9,6 +9,11 @@ export type StateService = {
   clean(id: string): Promise<void>,
 };
 
+export interface ILongLongJob<In, Out> {
+  start(initialState: In): Promise<Out>;
+  terminate(): void;
+}
+
 export type TaskState<S> = { cursor: number, state: S };
 
 export type TaskAction<S> = (state: S) => Promise<Action<S>>;

@@ -1,6 +1,6 @@
 {
   "name": "long-long-job",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "description": "Library for execution of long jobs with resume support.",
   "main": "dist/index.js",
   "engineStrict": true,

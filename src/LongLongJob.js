@@ -1,11 +1,11 @@
 // @flow
 import EventEmitter from 'events';
-import type { StateService, TaskUnit, TaskState } from './types';
+import type { StateService, TaskUnit, TaskState, ILongLongJob } from './types';
 import { Next, Goto, Repeat } from './actions';
 import { groupTaskUnits } from './util';
 
 export default (stateService: StateService) =>
-  class LongLongJob<In, Out> extends EventEmitter {
+  class LongLongJob<In, Out> extends EventEmitter implements ILongLongJob<In, Out> {
     id: string;
     tasks: TaskUnit<any>[];
     isRunning: boolean;
@@ -38,8 +38,6 @@ export default (stateService: StateService) =>
         if (!this.isRunning) {
           throw new Error('Job terminated');
         }
-
-        this.emit('task', cursor, state);
 
         const action = await tasks[cursor](state);
 

@@ -2,7 +2,7 @@ const incrementJob = require('./incrementJob');
 
 incrementJob.on('start', () => console.log('Job started'));
 incrementJob.on('resume', () => console.log('Job resumed'));
-incrementJob.on('task', (cursor, { value }) => console.log('Current value is %d', value));
+incrementJob.on('tick', value => console.log('Current value is %d', value));
 incrementJob.on('done', () => console.log('Job finished'));
 
 incrementJob

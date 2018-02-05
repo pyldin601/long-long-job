@@ -68,7 +68,6 @@ describe('Runner tests', () => {
   test('Test event emitter (start)', async () => {
     const onStart = jest.fn();
     const onResume = jest.fn();
-    const onTask = jest.fn();
     const onDone = jest.fn();
 
     const job = new LongLongJob('test-job-6', [
@@ -79,7 +78,6 @@ describe('Runner tests', () => {
 
     job.on('start', onStart);
     job.on('resume', onResume);
-    job.on('task', onTask);
     job.on('done', onDone);
 
     expect(await job.start(initialState)).toEqual(30);
@@ -88,10 +86,6 @@ describe('Runner tests', () => {
     expect(onStart.mock.calls[0]).toEqual([]);
 
     expect(onResume.mock.calls.length).toBe(0);
-
-    expect(onTask.mock.calls.length).toBe(2);
-    expect(onTask.mock.calls[0]).toEqual([0, 5]);
-    expect(onTask.mock.calls[1]).toEqual([1, 15]);
 
     expect(onDone.mock.calls.length).toBe(1);
     expect(onDone.mock.calls[0]).toEqual([30]);
@@ -102,7 +96,6 @@ describe('Runner tests', () => {
 
     const onStart = jest.fn();
     const onResume = jest.fn();
-    const onTask = jest.fn();
     const onDone = jest.fn();
 
     const job = new LongLongJob('test-job-7', [
@@ -113,7 +106,6 @@ describe('Runner tests', () => {
 
     job.on('start', onStart);
     job.on('resume', onResume);
-    job.on('task', onTask);
     job.on('done', onDone);
 
     expect(await job.start(initialState)).toEqual(30);
@@ -122,9 +114,6 @@ describe('Runner tests', () => {
 
     expect(onResume.mock.calls.length).toBe(1);
     expect(onResume.mock.calls[0]).toEqual([]);
-
-    expect(onTask.mock.calls.length).toBe(1);
-    expect(onTask.mock.calls[0]).toEqual([1, 15]);
 
     expect(onDone.mock.calls.length).toBe(1);
     expect(onDone.mock.calls[0]).toEqual([30]);
@@ -135,10 +124,12 @@ describe('Runner tests', () => {
       async ({ initial }) => goto('inc', { current: initial, threshold: initial + 10 }),
 
       label('inc'),
-      async ({ current, threshold }) =>
-        current < threshold
+      async ({ current, threshold }) => {
+        job.emit('tick', current);
+        return current < threshold
           ? repeat({ current: current + 1, threshold })
-          : goto('dec', { current, threshold: current - 8 }),
+          : goto('dec', { current, threshold: current - 8 });
+      },
 
       label('dec'),
       async ({ current, threshold }) =>
@@ -147,8 +138,8 @@ describe('Runner tests', () => {
           : goto('inc', { current, threshold: current + 12 }),
     ]);
 
-    job.on('task', (cursor, state) => {
-      if (state.current > 50) {
+    job.on('tick', (current) => {
+      if (current > 50) {
         job.terminate();
       }
     });
