@@ -33,7 +33,7 @@ export default (stateService: StateService) => class LongLongJob<In, Out> extend
 
     let { cursor, state } = await this.getTaskState(initialState);
 
-    while(tasks[cursor] !== undefined) {
+    while (tasks[cursor] !== undefined) {
       if (!this.isRunning) {
         throw new Error('Job terminated');
       }
