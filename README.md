@@ -5,6 +5,8 @@
 
 ## What?
 
+I wrote this module to use in service where background jobs can take a lot of time. It supports resume progress during service restarts or redeployments.
+
 This module ables you to create a chain of tasks (computations or actions) with ability to resume run state on restart.
 Each task receives state of previous task (or initial state if it is first in chain) and must return action what to do next composed with new state.
 
