@@ -1,7 +1,7 @@
 // @flow
 import EventEmitter from 'events';
 import type { StateService, TaskUnit, TaskState, ILongLongJob } from './types';
-import { Next, Goto, Repeat } from './actions';
+import { Next, Goto, Repeat, Done } from './actions';
 import { groupTaskUnits } from './util';
 
 export default (stateService: StateService) =>
@@ -50,6 +50,9 @@ export default (stateService: StateService) =>
             throw new Error(`Label ${action.label} does not exist`);
           }
           cursor = labels[action.label];
+        } else if (action instanceof Done) {
+          state = action.state;
+          cursor = tasks.length;
         } else {
           throw new Error(`Task should return an action`);
         }

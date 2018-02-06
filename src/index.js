@@ -1,6 +1,6 @@
 // @flow
-import { next, repeat, goto, label } from './helpers';
+import { next, repeat, goto, label, done } from './helpers';
 import longLongJob from './LongLongJob';
 
-export { next, repeat, goto, label, longLongJob };
+export { next, repeat, goto, label, done, longLongJob };
 
