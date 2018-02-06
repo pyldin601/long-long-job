@@ -3,6 +3,11 @@
 [![Build Status](https://travis-ci.org/pldin601/long-long-job.svg?branch=master)](https://travis-ci.org/pldin601/long-long-job)
 [![Coverage Status](https://coveralls.io/repos/github/pldin601/long-long-job/badge.svg?branch=master)](https://coveralls.io/github/pldin601/long-long-job?branch=master)
 
+```basic
+10 PRINT "HELLO"
+20 GOTO 10
+```
+
 ## What?
 
 This module ables you to create a chain of tasks (computations or actions) with ability to resume run state on restart.
