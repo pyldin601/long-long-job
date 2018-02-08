@@ -1,6 +1,6 @@
 // @flow
 import factory from '../src/LongLongJob';
-import { next, repeat, goto, label } from '../src';
+import { next, repeat, goto, label, done, chain } from '../src';
 
 const stateStore = new Map();
 
@@ -28,41 +28,51 @@ describe('Runner tests', () => {
   });
 
   test('Simple tasks chain (full)', async () => {
-    const job = new LongLongJob('test-job-2', [
+    const job = new LongLongJob('test-job-2', chain(
       async state => next(state + 10),
       async state => next(state * 2),
-    ]);
+    ));
     const initialState = 5;
     expect(await job.start(initialState)).toEqual(30);
   });
 
   test('Simple tasks chain (resume)', async () => {
     stateStore.set('test-job-3', { cursor: 1, state: 15 });
-    const job = new LongLongJob('test-job-3', [
+    const job = new LongLongJob('test-job-3', chain(
       async state => next(state + 10),
       async state => next(state * 2),
-    ]);
+    ));
     const initialState = 5;
     expect(await job.start(initialState)).toEqual(30);
   });
 
   test('Tasks chain with repeat', async () => {
-    const job = new LongLongJob('test-job-4', [
+    const job = new LongLongJob('test-job-4', chain(
       async state => next(state + 10),
       async state => (state < 1000 ? repeat(state * 2) : next(state)),
-    ]);
+    ));
     const initialState = 5;
     expect(await job.start(initialState)).toEqual(1920);
   });
 
   test('Tasks chain with label', async () => {
-    const job = new LongLongJob('test-job-5', [
+    const job = new LongLongJob('test-job-5', chain(
       label('begin'),
       async state => next(state + 10),
       async state => (state < 1000 ? goto('begin', state * 2) : next(state)),
-    ]);
+    ));
     const initialState = 5;
     expect(await job.start(initialState)).toEqual(1590);
+  });
+
+  test('Test done action', async () => {
+    const job = new LongLongJob('test-job-5', chain(
+      label('begin'),
+      async state => done(state + 10),
+      async state => (state < 1000 ? goto('begin', state * 2) : next(state)),
+    ));
+    const initialState = 5;
+    expect(await job.start(initialState)).toEqual(15);
   });
 
   test('Test event emitter (start)', async () => {
@@ -70,10 +80,10 @@ describe('Runner tests', () => {
     const onResume = jest.fn();
     const onDone = jest.fn();
 
-    const job = new LongLongJob('test-job-6', [
+    const job = new LongLongJob('test-job-6', chain(
       async state => next(state + 10),
       async state => next(state * 2),
-    ]);
+    ));
     const initialState = 5;
 
     job.on('start', onStart);
@@ -98,10 +108,10 @@ describe('Runner tests', () => {
     const onResume = jest.fn();
     const onDone = jest.fn();
 
-    const job = new LongLongJob('test-job-7', [
+    const job = new LongLongJob('test-job-7', chain(
       async state => next(state + 10),
       async state => next(state * 2),
-    ]);
+    ));
     const initialState = 5;
 
     job.on('start', onStart);
@@ -120,7 +130,7 @@ describe('Runner tests', () => {
   });
 
   test('Test termination', async () => {
-    const job = new LongLongJob('inc-dec', [
+    const job = new LongLongJob('inc-dec', chain(
       async ({ initial }) => goto('inc', { current: initial, threshold: initial + 10 }),
 
       label('inc'),
@@ -136,7 +146,7 @@ describe('Runner tests', () => {
         current > threshold
           ? repeat({ current: current - 1, threshold })
           : goto('inc', { current, threshold: current + 12 }),
-    ]);
+    ));
 
     job.on('tick', (current) => {
       if (current > 50) {
@@ -145,5 +155,31 @@ describe('Runner tests', () => {
     });
 
     await expect(job.start({ initial: 0 })).rejects.toEqual(new Error('Job terminated'));
+  });
+
+  test('Wrong return from task', async () => {
+    const job = new LongLongJob('wrong-return', chain(
+      async () => 'foo',
+    ));
+
+    await expect(job.start()).rejects.toEqual(new Error('Task should return an action'));
+  });
+
+  test('Start already started job', async () => {
+    const job = new LongLongJob('wrong-return', chain(
+      async () => next('foo'),
+    ));
+
+    job.start();
+
+    await expect(job.start()).rejects.toEqual(new Error('Already started'));
+  });
+
+  test('Got non-existent label', async () => {
+    const job = new LongLongJob('wrong-label', chain(
+      async () => goto('foo'),
+    ));
+
+    await expect(job.start()).rejects.toEqual(new Error('Label "foo" does not exist'));
   });
 });

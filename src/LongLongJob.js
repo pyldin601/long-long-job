@@ -4,8 +4,16 @@ import type { StateService, TaskUnit, TaskState, ILongLongJob } from './types';
 import { Next, Goto, Repeat, Done } from './actions';
 import { groupTaskUnits } from './util';
 
-export default (stateService: StateService) =>
-  class LongLongJob<In, Out> extends EventEmitter implements ILongLongJob<In, Out> {
+export default (stateService: StateService) => {
+  async function getTaskState(id: string, initialState: any): Promise<TaskState<any>> {
+    const taskState = await stateService.getState(id);
+    if (taskState === null || taskState === undefined) {
+      return { cursor: 0, state: initialState };
+    }
+    return taskState;
+  }
+
+  return class LongLongJob<In, Out> extends EventEmitter implements ILongLongJob<In, Out> {
     id: string;
     tasks: TaskUnit<any>[];
     isRunning: boolean;
@@ -26,13 +34,13 @@ export default (stateService: StateService) =>
 
       const { labels, tasks } = groupTaskUnits(this.tasks);
 
-      if (await this.hasStoredState()) {
+      if (await stateService.hasState(this.id)) {
         this.emit('resume');
       } else {
         this.emit('start');
       }
 
-      let { cursor, state } = await this.getTaskState(initialState);
+      let { cursor, state } = await getTaskState(this.id, initialState);
 
       while (tasks[cursor] !== undefined) {
         if (!this.isRunning) {
@@ -47,7 +55,7 @@ export default (stateService: StateService) =>
           /* Blank */
         } else if (action instanceof Goto) {
           if (labels[action.label] === undefined) {
-            throw new Error(`Label ${action.label} does not exist`);
+            throw new Error(`Label "${action.label}" does not exist`);
           }
           cursor = labels[action.label];
         } else if (action instanceof Done) {
@@ -64,7 +72,7 @@ export default (stateService: StateService) =>
 
       this.emit('done', state);
 
-      await this.clearStoredState();
+      await stateService.clean(this.id);
 
       this.isRunning = false;
 
@@ -75,19 +83,5 @@ export default (stateService: StateService) =>
       this.isRunning = false;
     }
 
-    async getTaskState(initialState: In): Promise<TaskState<any>> {
-      const taskState = await stateService.getState(this.id);
-      if (taskState === null || taskState === undefined) {
-        return { cursor: 0, state: initialState };
-      }
-      return taskState;
-    }
-
-    async hasStoredState(): Promise<boolean> {
-      return stateService.hasState(this.id);
-    }
-
-    async clearStoredState(): Promise<void> {
-      await stateService.clean(this.id);
-    }
   };
+};
