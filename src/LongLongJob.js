@@ -3,6 +3,7 @@ import EventEmitter from 'events';
 import type { StateService, TaskUnit, TaskState, ILongLongJob } from './types';
 import { Next, Goto, Repeat, Done } from './actions';
 import { groupTaskUnits } from './util';
+import TransitionError from './TransitionError';
 
 export default (stateService: StateService) => {
   async function getTaskState(id: string, initialState: any): Promise<TaskState<any>> {
@@ -44,7 +45,7 @@ export default (stateService: StateService) => {
 
       while (tasks[cursor] !== undefined) {
         if (!this.isRunning) {
-          throw new Error('Job terminated');
+          throw new TransitionError('Job terminated');
         }
 
         const action = await tasks[cursor](state);
@@ -55,14 +56,14 @@ export default (stateService: StateService) => {
           /* Blank */
         } else if (action instanceof Goto) {
           if (labels[action.label] === undefined) {
-            throw new Error(`Label "${action.label}" does not exist`);
+            throw new TransitionError(`Label "${action.label}" does not exist`);
           }
           cursor = labels[action.label];
         } else if (action instanceof Done) {
           state = action.state;
           cursor = tasks.length;
         } else {
-          throw new Error(`Task should return an action`);
+          throw new TransitionError(`Task should return an action`);
         }
 
         state = action.state;
